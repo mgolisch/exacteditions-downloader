@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data-sources>
+	<data-source id="sqlite_zentus-1387930111560--1494754082" provider="generic" driver="sqlite_zentus" name="SQLite - db.db" create-date="1387930111560" save-password="true" show-system-objects="true" read-only="false">
+		<connection server="" database="/home/mgolisch/.exacteditions-downloader/db.db" url="jdbc:sqlite:/home/mgolisch/.exacteditions-downloader/db.db" user="" type="dev"/>
+	</data-source>
+</data-sources>
