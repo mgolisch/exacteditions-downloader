@@ -19,14 +19,14 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.sqlite.SQLiteConnection;
 
-import com.lowagie.text.pdf.PdfCopy;
-import com.lowagie.text.pdf.PdfReader;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.itextpdf.text.pdf.PdfCopy;
+import com.itextpdf.text.pdf.PdfReader;
+
+import eu.mgolisch.exacteditions.TitleComboItem;
 
 
 public class Utils {
@@ -152,6 +152,7 @@ public class Utils {
 		try {
 			while(!islastpage) {
 				String download_url = String.format(download_url_template, issueid,page);
+				
 				byte[] current = helper.GetPdfPage(download_url, true);
 				pdf_pages.add(current);
 				//if(last != null)
@@ -164,7 +165,7 @@ public class Utils {
 				if(page >pages)
 					islastpage=true;
 			}
-			 com.lowagie.text.Document document = new com.lowagie.text.Document();
+			 com.itextpdf.text.Document document = new com.itextpdf.text.Document();
 			 PdfCopy copy = new PdfCopy(document, new FileOutputStream(download_path.resolve(name+".pdf").toFile().getAbsolutePath()));
 		     document.open();
 		     PdfReader reader;
@@ -298,13 +299,13 @@ public class Utils {
 		try {
 			boolean hasmorepages = true;
 			while(hasmorepages) {
-			String page =  helper.GetPageContent(page_url);
-			Document doc = Jsoup.parse(page);
-			Elements issuedivs = doc.getElementsByClass("pageLink");
-			for(Element issuediv:issuedivs) {
-				Element link = issuediv.getElementsByTag("a").first();
-				String href = link.attr("href");
-				String name = link.attr("title");
+			HtmlPage page =  helper.GetPageContent(page_url);
+			System.out.println(page.asText());
+			List<HtmlElement> issuedivs = (List<HtmlElement>) page.getByXPath( "//div[@class='pageLink']");
+			for(HtmlElement issuediv:issuedivs) {
+				HtmlElement link = issuediv.getElementsByTagName("a").get(0);
+				String href = link.getAttribute("href");
+				String name = link.getAttribute("title");
 				String issueid = href.substring(href.lastIndexOf("-")+1);
 				System.out.println("Name: " + name + " Issue: " + issueid);
 				HashMap<String,String> map = new HashMap<String, String>();
@@ -313,11 +314,11 @@ public class Utils {
 				map.put("titleid", titleid);
 				ret.add(map);
 			}
-			Element nextpage = doc.getElementsByAttributeValue("title", "Next page").first();
+			HtmlElement nextpage = page.getByXPath("//a[@title='Next page']").size() >0 ? (HtmlElement) page.getByXPath("//a[@title='Next page']").get(0):null;
 			if(nextpage == null)
 				hasmorepages = false;
 			else
-				page_url = nextpage.attr("abs:href").replace(";", "?");
+				page_url = page.getFullyQualifiedUrl(nextpage.getAttribute("href").replace(";", "?")).toString();
 			System.out.println(page_url);
 			
 			}
